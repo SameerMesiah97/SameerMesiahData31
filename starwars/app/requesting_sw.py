@@ -1,67 +1,48 @@
-import requests
 import pymongo
-import json
+import requests
 
-client = pymongo.MongoClient()
 
-db = client['starwars']
-db2 = client['starwars31']
+def set_up_db():
+    client = pymongo.MongoClient()
+    db = client['starwars31']
 
-try:
-    db.create_collection("starships")
-except:
-    print("Starship collection exists. Remove all docs")
-    db.starships.delete_many({})
+    try:
+        db.create_collection("starships")
+    except:
+        print("Starship collection exists. Emptying collection...")
+        db.starships.delete_many({})
 
-try:
-    db.create_collection("people")
-except:
-    print("People collection exists. Remove all docs")
-    db.people.delete_many({})
 
-end = False
+def dl_transform(db):
+    end_of_json = False
+    page_no = 1
 
-page_no = 1
+    while not end_of_json:
+        response = requests.get("https://swapi.dev/api/starships/?page=" + str(page_no))
 
-while not end:
-    response = requests.get("https://swapi.dev/api/starships/?page=" + str(page_no))
+        for ship in response.json()['results']:
+            pilots_list = []
+            for pilot in ship['pilots']:
+                response2 = requests.get(pilot)
+                pilot_name = response2.json()['name']
 
-    for ship in response.json()['results']:
-        for pilot in ship['pilots']:
+                char_id = db.characters.find({"name": pilot_name}, {"_id": 1})
 
-            response2 = requests.get(pilot)
-            pilot_name = response2.json()['name']
-            char_id = db2.characters.find({"name": pilot_name}, {"_id": 1})
+                for x in char_id:
+                    pilots_list.append(x["_id"])
 
-            for x in char_id:
-                pilot_id = (x["_id"])
-            pilot = pilot_id;
-    
-        print (ship)
-        db.starships.insert_one(ship)
+            pilots = {'pilots': pilots_list}
 
-    if response.json()['next'] is None:
-        end = True
-    else:
-        page_no += 1
+            ship.update(pilots)
 
-end = False
-page_no = 1
+            ship.pop('created')
+            ship.pop('edited')
+            ship.pop('url')
 
-while not end:
-    response = requests.get("https://swapi.dev/api/people/?page=" + str(page_no))
+            db.starships.insert_one(ship)
 
-    for people in response.json()['results']:
-        db.people.insert_one(people)
+        if response.json()['next'] is None:
+            return True
+        else:
+            page_no += 1
 
-    if response.json()['next'] is None:
-        end = True
-    else:
-        page_no += 1
-
-print("Ships")
-
-# for data in db.starships.find():
-#     print (data['name'])
-#     for pilot in data['pilots']:
-#         print (pilot)

@@ -1,4 +1,4 @@
-# Data 25 Star Wars Project
+# Data 31 Star Wars Project
 
 ## Instructions
 
@@ -9,7 +9,7 @@ The "pilots" key contains URLs pointing to the characters who pilot the starship
 Use these to replace 'pilots' with a list of ObjectIDs from our characters collection, then insert the starships into their own collection in MongoDB.
 (Make sure you drop any existing starships collections.)
 
-You have until after Christmas.
+You have until Monday EOD.
 
 ## Requirements
 

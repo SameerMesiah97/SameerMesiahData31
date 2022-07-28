@@ -1,3 +1,7 @@
+import app.requesting_sw
 
 if __name__ == '__main__':
-    pass  # Replace this with code to run your app
+
+    db = app.requesting_sw.set_up_db()
+    app.requesting_sw.dl_transform(db)
+    app.requesting_sw.read_from_db(db)
